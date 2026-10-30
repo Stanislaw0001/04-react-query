@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import SearchBar from '../SearchBar/SearchBar';
 import { fetchMovies } from '../../services/movieService';
 import MovieGrid from '../MovieGrid/MovieGrid';
@@ -15,7 +15,7 @@ export default function App() {
     const [page, setPage] = useState(1);
     const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-    const { data, isLoading, isError, isSuccess } = useQuery({
+    const { data, isLoading, isError, isSuccess, isPlaceholderData } = useQuery({
         queryKey: ['movies', query, page],
         queryFn: () => fetchMovies(query, page),
         enabled: query !== '',
@@ -23,6 +23,12 @@ export default function App() {
     });
 
     const closeModal = useCallback(() => setSelectedMovie(null), []);
+
+    useEffect(() => {
+        if (isSuccess && !isPlaceholderData && data.results.length === 0) {
+            toast.error('No movies found for your request.');
+        }
+    }, [data, isPlaceholderData, isSuccess]);
 
     const handleSearch = (newQuery: string) => {
         setQuery(newQuery);
