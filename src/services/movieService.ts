@@ -3,11 +3,20 @@ import type { Movie } from '../types/movie';
 
 interface MovieApiResponse {
     results: Movie[];
+    total_pages: number;
+}
+
+interface MovieSearchResult {
+    results: Movie[];
+    totalPages: number;
 }
 
 const API_URL = 'https://api.themoviedb.org/3/search/movie';
 
-export async function fetchMovies(query: string): Promise<Movie[]> {
+export async function fetchMovies(
+    query: string,
+    page: number
+): Promise<MovieSearchResult> {
     const token = import.meta.env.VITE_TMDB_ACCESS_TOKEN;
 
     if (!token) {
@@ -19,7 +28,7 @@ export async function fetchMovies(query: string): Promise<Movie[]> {
             query,
             include_adult: false,
             language: 'en-US',
-            page: 1,
+            page,
         },
         headers: {
             accept: 'application/json',
@@ -27,5 +36,8 @@ export async function fetchMovies(query: string): Promise<Movie[]> {
         },
     });
 
-    return response.data.results;
+    return {
+        results: response.data.results,
+        totalPages: response.data.total_pages,
+    };
 }
